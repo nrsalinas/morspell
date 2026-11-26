@@ -15,6 +15,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score 
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 
+clustme = True
+score_clust = "ch" # 'ch' | 'db' | 's'
+
 thmat, morpho_cols = dl.squirrel_mat()
 print(thmat.head())
 thmat.loc[thmat["lineage"] != "north", "lineage"] = "no-north"
@@ -27,37 +30,40 @@ print(X.shape, y.shape)
 scaler = StandardScaler()
 labenc = LabelEncoder()
 X_sca = scaler.fit_transform(X)
-chscore = []
-dbscore = []
-sscore = []
-lab_hist = []
 
-for i in range(2, int(X.shape[0])):
+if clustme:
 
-	print(f"Assuming {i} clusters")
-	clust = SpectralClustering(
-		n_clusters=i, 
-		assign_labels="discretize",
-		random_state=12345
-		).fit(X_sca)
+	chscore = []
+	dbscore = []
+	sscore = []
+	lab_hist = []
 
-	lab_hist.append(clust.labels_)
-	chscore.append(calinski_harabasz_score(X_sca, clust.labels_))
-	dbscore.append(davies_bouldin_score(X_sca, clust.labels_))
-	sscore.append(silhouette_score(X_sca, clust.labels_))
-	#print(f"calinski_harabasz_score = {chs}")
-	#print(f"davies_bouldin_score = {dbs}")
-	#print(f"silhouette_score = {ss}")
-	#print("#" * 80)
+	for i in range(2, int(X.shape[0])):
 
-print(f"Best Calinski Harabasz score: {max(chscore)}")
-print(f"Best Calinski Harabasz clustering:\n{lab_hist[chscore.index(max(chscore))]}")
+		print(f"Assuming {i} clusters")
+		clust = SpectralClustering(
+			n_clusters=i, 
+			assign_labels="discretize",
+			random_state=12345
+			).fit(X_sca)
 
-print(f"Best Davies Bouldin score:{min(dbscore)}")
-print(f"Best Davies Bouldin clustering:\n{lab_hist[dbscore.index(min(dbscore))]}")
+		lab_hist.append(clust.labels_)
+		chscore.append(calinski_harabasz_score(X_sca, clust.labels_))
+		dbscore.append(davies_bouldin_score(X_sca, clust.labels_))
+		sscore.append(silhouette_score(X_sca, clust.labels_))
+		#print(f"calinski_harabasz_score = {chs}")
+		#print(f"davies_bouldin_score = {dbs}")
+		#print(f"silhouette_score = {ss}")
+		#print("#" * 80)
 
-print(f"Best Silhouette score: {max(sscore)}")
-print(f"Best Silhouette clustering:\n{lab_hist[sscore.index(max(sscore))]}")
+	print(f"Best Calinski Harabasz score: {max(chscore)}")
+	print(f"Best Calinski Harabasz clustering:\n{lab_hist[chscore.index(max(chscore))]}")
+
+	print(f"Best Davies Bouldin score:{min(dbscore)}")
+	print(f"Best Davies Bouldin clustering:\n{lab_hist[dbscore.index(min(dbscore))]}")
+
+	print(f"Best Silhouette score: {max(sscore)}")
+	print(f"Best Silhouette clustering:\n{lab_hist[sscore.index(max(sscore))]}")
 
 exit()
 
